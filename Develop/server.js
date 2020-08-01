@@ -21,20 +21,37 @@ app.get("/api/notes", function (req, res) {
 });
 
 app.post("/api/notes", function (req, res) {
-  notes = req.body;
-  req.body.id = req.body.title.val().toLowerCase();
-  newNotes = JSON.stringify(notes);
-  fs.writeFile(newNotes, "./db/db.json");
+  notes = fs.readFileSync("./db/db.json");
+  notes = JSON.parse(notes);
+  let newNotes = req.body;
+  newNotes["id"] = newNotes.title;
+  notes.push(newNotes);
+  notes = JSON.stringify(notes);
+  fs.writeFile("./db/db.json", notes, function (err) {
+    if (err) {
+      return console.log(err);
+    }
+    console.log("Notes updated!");
+  });
   res.json(notes);
 });
 
 app.delete("/api/notes/:id", function (req, res) {
   let deleteNote = req.params.id;
-  for (i = 0; i < req.body.length; i++) {
-    if (deleteNote === req.body[i].id) {
-      res.json(deleteNote);
+  console.log(deleteNote);
+  notes = fs.readFileSync("./db/db.json");
+  notes = JSON.parse(notes);
+  let filtered = notes.filter((notes) => notes.id != deleteNote);
+  console.log(filtered);
+  let newNote = JSON.stringify(filtered);
+  fs.writeFile("./db/db.json", newNote, function (err) {
+    if (err) {
+      return console.log(err);
     }
-  }
+    console.log("Deleted Note!");
+  });
+
+  return res.json(filtered);
 });
 
 app.get("*", function (req, res) {
